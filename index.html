@@ -2,57 +2,136 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Project Gmina Siedlce</title>
-<link rel="icon" href="Logosiedlce.png">
-<link rel="stylesheet" href="style.css">
+<title>Brawl Stars Leaderboard</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: white;
+  text-align: center;
+}
+
+h1 {
+  margin-top: 20px;
+}
+
+table {
+  margin: 30px auto;
+  border-collapse: collapse;
+  width: 90%;
+  max-width: 500px;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 12px;
+}
+
+th {
+  background: #0ea5e9;
+}
+
+tr:nth-child(even) {
+  background: #334155;
+}
+
+tr:hover {
+  background: #475569;
+}
+
+.rank {
+  font-weight: bold;
+}
+
+.gold { color: gold; }
+.silver { color: silver; }
+.bronze { color: #cd7f32; }
+
+.status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #aaa;
+}
+</style>
 </head>
+
 <body>
 
-<div class="bg" id="bg"></div>
+<h1>🏆 Leaderboard Brawl Stars</h1>
 
-<header class="header">
-  <!-- MENU U GÓRY -->
-  <nav class="menu-top">
-    <a href="index.html">Strona główna</a>
-    <a href="ogloszenia.html">Ogłoszenia</a>
-    <a href="bany.html">Bany</a>
-  </nav>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Nick</th>
+      <th>Pucharki</th>
+    </tr>
+  </thead>
+  <tbody id="tabela"></tbody>
+</table>
 
-  <img src="Logosiedlce.png" class="logo" id="logo" alt="Logo">
-  <h1 class="title glow">Project Gmina Siedlce</h1>
-  <p class="subtitle">Nadchodzi nowa era polskich dróg – <span>25 października 2025</span></p>
-  <div class="countdown pulse" id="countdown"></div>
+<div class="status" id="status">Ładowanie...</div>
 
-  <a href="https://trello.com" target="_blank" class="trello-btn">
-    <img src="Trello_icon5.png" alt="Trello"> Sprawdź Trello
-  </a>
-</header>
+<script>
+// 🔥 TWOJE TAGI (możesz dodawać więcej)
+const tags = [
+  "%23GGVLLV9JU",
+  "%232Q28JYCRPP",
+  "%23CLV88VVCO",
+  "%23Q8QRLU92U",
+  "%23GJCQV89CJ"
+];
 
-<main>
-  <section class="panel fade-in">
-    <h2>Witamy na stronie projektu Gmina Siedlce!</h2>
-    <p>Tu znajdziesz wszystkie najważniejsze informacje i aktualności dotyczące projektu.</p>
-  </section>
+async function loadData() {
+  let players = [];
 
-  <section class="discord fade-in">
-    <h2>💬 Discord Live</h2>
-    <div id="discordWidget" class="discord-widget">Ładowanie danych Discord...</div>
-  </section>
-</main>
+  for (let tag of tags) {
+    try {
+      const res = await fetch(`https://api.brawlify.com/v1/players/${tag}`);
+      const data = await res.json();
 
-<footer>
-  <p>© 2025 Project Gmina Siedlce — dc frvvnek_</p>
-</footer>
+      players.push({
+        name: data.name,
+        trophies: data.trophies
+      });
 
-<audio id="bgMusic" loop>
-  <source src="bgmusic.mp3" type="audio/mpeg">
-</audio>
+    } catch {
+      console.log("Błąd dla tagu:", tag);
+    }
+  }
 
-<div id="adminOverlay" class="hidden">
-  <div class="admin-box" id="adminBox"></div>
-</div>
+  // sortowanie po pucharkach
+  players.sort((a, b) => b.trophies - a.trophies);
 
-<script src="script.js"></script>
+  let html = "";
+
+  players.forEach((p, i) => {
+    let medalClass = "";
+    if (i === 0) medalClass = "gold";
+    else if (i === 1) medalClass = "silver";
+    else if (i === 2) medalClass = "bronze";
+
+    html += `
+      <tr>
+        <td class="rank ${medalClass}">${i + 1}</td>
+        <td>${p.name}</td>
+        <td>${p.trophies}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("tabela").innerHTML = html;
+  document.getElementById("status").innerText =
+    "Aktualizacja: " + new Date().toLocaleTimeString();
+}
+
+// start + auto refresh
+loadData();
+setInterval(loadData, 30000);
+</script>
+
 </body>
 </html>
